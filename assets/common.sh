@@ -167,6 +167,7 @@ add_git_metadata_url() {
     esac
 
     if [ -n "$url" ]; then
+      # for security to remove access_token from showing up on UI
       url=$(echo $url | sed "s#https://.*\@#https://#")
       jq ". + [
         {name: \"url\", value: \"${url}\"}
@@ -226,6 +227,19 @@ load_git_crypt_key() {
   fi
 }
 
+
+logDebug() {
+  BLUE='\033[0;34m'
+  NC='\033[0m' # No Color
+  debug=$1
+  if [[ ! "$debug" == "true" ]]; then
+    return
+  fi
+  shift
+  message=$@
+  printf "${BLUE}opendoor/git-resource DEBUG:${NC} $message\n"
+}
+
 logInfo() {
   GREEN='\033[0;32m'
   NC='\033[0m' # No Color
@@ -243,3 +257,8 @@ logError() {
 }
  
  
+addTokenToUri() {
+  uri=$1
+  TOKEN=$2
+  echo $uri | sed "s#https://#https://x-access-token:$TOKEN@#"
+}

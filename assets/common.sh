@@ -256,7 +256,7 @@ logError() {
   printf "${GREEN}opendoor/git-resource ERROR:${NC} $message\n"
 }
  
- 
+# adds access token to uri 
 addTokenToUri() {
   uri=$1
   TOKEN=$2

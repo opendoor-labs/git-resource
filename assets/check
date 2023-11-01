@@ -71,7 +71,7 @@ else
     branchflag="--branch $branch"
   fi
 	
-  depth=1
+  depth=500
 
   logInfo "BEGIN opendoor/git-resource assets/check ... about to call clone with depth : $depth"
   git clone --depth=$depth --single-branch $uri $branchflag $destination $tagflag

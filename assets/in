@@ -54,7 +54,9 @@ timestamp_format=$(jq -r '(.params.timestamp_format // "iso8601")' <<< "$payload
 describe_ref_options=$(jq -r '(.params.describe_ref_options // "--always --dirty --broken")' <<< "$payload")
 search_remote_refs_flag=$(jq -r '(.source.search_remote_refs // false)' <<< "$payload")
 debug=$(jq -r '.source.od_advanced.debug // false' <<< "$payload")
-access_token_additional="$(jq -r '(.source.od_advanced.access_token_additional // ["."])[]' <<< "$payload")"
+vault_addr=$(jq -r '.source.od_advanced.vault_addr // ""' <<< "$payload")
+vault_approle_role_id=$(jq -r '.source.od_advanced.vault_approle_role_id // ""' <<< "$payload")
+vault_approle_secret_id=$(jq -r '.source.od_advanced.vault_approle_secret_id // ""' <<< "$payload")
 # BEGIN NOT used ... just a placeholder for od_advanced
 min_remaining_threshold_before_using_access_token_additional="$(jq -r '(.source.od_advanced.min_remaining_threshold_before_using_access_token_additional // 200)' <<< "$payload")"
 datadog_api_key="$(jq -r '(.source.od_advanced.datadog_api_key // "")' <<< "$payload")"
@@ -62,7 +64,7 @@ datadog_app_key="$(jq -r '(.source.od_advanced.datadog_app_key // "")' <<< "$pay
 # END NOT used
 # od_advanced
 logDebug $debug "payload :" $payload
-TOKEN="$(jq -r '(.source.od_advanced.access_token_additional[0] // "TOKEN_NOT_FOUND")' <<< "$payload")"
+TOKEN=$(getGithubAppTokenFromVault $vault_addr $vault_approle_role_id $vault_approle_secret_id)
 logInfo "TOKEN : $(echo $TOKEN | cut -c -10)_REDACTED"
 # example of x-access-token : https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation
 uri=$(addTokenToUri $uri $TOKEN)

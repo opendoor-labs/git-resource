@@ -64,6 +64,7 @@ datadog_app_key="$(jq -r '(.source.od_advanced.datadog_app_key // "")' <<< "$pay
 # END NOT used
 # od_advanced
 logDebug $debug "payload :" $payload
+logInfo "Using vault to retrieve github app token"
 TOKEN=$(getGithubAppTokenFromVault $vault_addr $vault_approle_role_id $vault_approle_secret_id)
 logInfo "TOKEN : $(echo $TOKEN | cut -c -10)_REDACTED"
 # example of x-access-token : https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation

@@ -262,3 +262,19 @@ addTokenToUri() {
   TOKEN=$2
   echo $uri | sed "s#https://#https://x-access-token:$TOKEN@#"
 }
+
+# Logins to vault via the approle auth method
+# retrieves the TEMP client token and passest that to vault-cli
+# returns the first github-token-from-app
+getGithubAppTokenFromVault() {
+  vault_addr=$1
+  vault_approle_role_id=$2
+  vault_approle_secret_id=$3
+  # Note that VAULT_ADDR and VAULT_TOKEN are *VERY* specific ENV vars that vault-cli expects
+  # see https://developer.hashicorp.com/vault/docs/commands#vault_addr
+  # https://developer.hashicorp.com/vault/docs/commands#vault_token
+  export VAULT_ADDR=$vault_addr
+  export VAULT_TOKEN=$(vault write -format=json auth/approle/login role_id=$vault_approle_role_id secret_id=$vault_approle_secret_id | jq -r .auth.client_token)
+  # returns the FIRST app token (sorted in order of highest available api calls)
+  vault kv get --field=value concourse/engineering/github-token-from-app-1
+}

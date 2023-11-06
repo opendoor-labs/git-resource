@@ -1,6 +1,7 @@
 ARG base_image
-
 FROM ${base_image} AS resource
+# In order to install vault-cli we need DEBIAN/Ubuntu as a base image
+ENV DEBIAN_FRONTEND=noninteractive
 USER root
 
 RUN apt update && apt upgrade -y -o Dpkg::Options::="--force-confdef"
@@ -20,7 +21,14 @@ RUN apt install -y --no-install-recommends \
     software-properties-common \
     wget \
     ca-certificates \
-    vim
+    vim \
+    gpg
+
+RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+RUN echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
+# note that one of the supported unix's for Hashicorp vault is ubuntu
+RUN apt update && apt install vault
+
 
 # From : https://github.com/totegamma/githubapps-content-resource/blob/master/Dockerfile
 RUN wget https://github.com/mike-engel/jwt-cli/releases/download/5.0.3/jwt-linux.tar.gz \
@@ -42,8 +50,9 @@ RUN git config --global protocol.file.allow "always"
 
 
 ENV CXXFLAGS -DOPENSSL_API_COMPAT=0x30000000L
-ADD scripts/install_git_crypt.sh install_git_crypt.sh
-RUN ./install_git_crypt.sh && rm ./install_git_crypt.sh
+# we aren't using git crypt and this is conflicting with ubuntu, so omit
+# ADD scripts/install_git_crypt.sh install_git_crypt.sh
+# RUN ./install_git_crypt.sh && rm ./install_git_crypt.sh
 ADD assets/ /opt/resource/
 RUN chmod +x /opt/resource/*
 

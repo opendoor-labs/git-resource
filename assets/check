@@ -11,6 +11,11 @@ source $(dirname $0)/common.sh
 # for jq
 PATH=/usr/local/bin:$PATH
 
+bin_dir="${0%/*}"
+if [ "${bin_dir#/}" == "$bin_dir" ]; then
+  bin_dir="$PWD/$bin_dir"
+fi
+
 payload="$(cat <&0)"
 
 load_pubkey "$payload"
@@ -79,10 +84,20 @@ else
   logInfo "BEGIN opendoor/git-resource assets/check ... about to call clone with depth : $depth"
   git clone --depth=$depth --single-branch $uri $branchflag $destination $tagflag
   logInfo "AFTER opendoor/git-resource assets/check ... clone done"
+  cd $destination
+
+  # We need to make sure that $ref (the previous version) is in the history. Otherwise the check
+  # below will fail and reverse will not be set to true. In addition, in a shallow clone, the
+  # oldest commit (i.e., the 500th), will basically be a commit that adds every file in the repo,
+  # which will result in this commit always passing the paths check. Hence, without this deepening,
+  # the oldest commit will always be returned as the next version.
+  if [ -n "$ref" ] && ! git cat-file -e "$ref"; then
+    "$bin_dir"/deepen_shallow_clone_until_ref_is_found_then_check_out 1 "$ref" "$tagflag"
+  fi
+
   # remaining rate limit
   rate_limit_json=$(curl https://api.github.com/rate_limit -H "Authorization: token $TOKEN" --silent)
   logInfo rate limit remaining : $(echo $rate_limit_json | jq -r '.rate.remaining')
-  cd $destination
 fi
 
 if [ -n "$ref" ] && git cat-file -e "$ref"; then

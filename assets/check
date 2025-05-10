@@ -61,8 +61,7 @@ destination=$TMPDIR/git-resource-repo-cache
 
 # Optimization when last commit only is checked and skip ci is disabled
 # Get the commit id with git ls-remote instead of downloading the whole repo
-if [ "$skip_ci_disabled" = "true" ] && \
-   [ "$version_depth" = "1" ] && \
+if [ "$version_depth" = "1" ] && \
    [ "$paths" = "." ] && \
    [ -z "$ignore_paths" ] && \
    [ -z "$tag_filter" ] && \
